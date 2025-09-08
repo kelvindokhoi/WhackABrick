@@ -121,28 +121,33 @@ headerfont = Font('freesansbold.ttf', 48)
 buttonfont = pygame.font.SysFont('Corbel',32)
 buttonfont.set_bold(True)
 
-# create some text
-# headerText = headerfont.render("Whack 'A Brick!", True, black, pink)
-# headerRect = headerText.get_rect()
-# headerRect.center = (350,50)
-# pygame.draw.rect(screen,pink,headerRect)
-# screen.blit(headerText, headerRect)
-
 # create text and info for our quit button
 quitButtonImage = pygame.transform.scale(pygame.image.load(resource_path(quit_button_image_path)).convert_alpha(),(73,32))
 quitButtonRect = quitButtonImage.get_rect()
-quitButtonx = 200
+quitButtonx = 150
 quitButtony = 600
 quitButtonwidth = quitButtonRect.width
 quitButtonheight = quitButtonRect.height
 quitButtonRect.topleft = (quitButtonx,quitButtony)
+pygame.draw.rect(screen,white,quitButtonRect)
 screen.blit(quitButtonImage, quitButtonRect)
+
+# create text and info for our shop button
+shopButtonText = buttonfont.render(" Shop ", True, black, pink)
+shopButtonRect = shopButtonText.get_rect()
+shopButtonx = 300  # New position
+shopButtony = 600
+shopButtonwidth = shopButtonRect.width
+shopButtonheight = shopButtonRect.height
+shopButtonRect.topleft = (shopButtonx,shopButtony)
+pygame.draw.rect(screen,white,shopButtonRect)
+screen.blit(shopButtonText, shopButtonRect)
 
 # create text and info for our start button
 startButtonText = buttonfont.render(" Start ", True, black, pink)
 startButtonRect = startButtonText.get_rect()
 print(startButtonRect)
-startButtonx = 400
+startButtonx = 450
 startButtony = 600
 startButtonwidth = startButtonRect.width
 startButtonheight = startButtonRect.height
@@ -213,6 +218,11 @@ while True:
                 cursor_image = transform.scale(pygame.image.load("cursor.png"),(30,30))
                 cursor_rect = cursor_image.get_rect()
             
+            # Add shop button click
+            if gameState==GameState.MAIN_MENU and mousex >= shopButtonx and mousex <= shopButtonx + shopButtonwidth and \
+                mousey >= shopButtony and mousey <= shopButtony + shopButtonheight:
+                gameState = GameState.SHOP
+            
             #play amongus sound when braxton is clicked
             braxton_pos_x1 = 0
             braxton_pos_x2 = 0 + braxton_x
@@ -236,9 +246,7 @@ while True:
 
         # paint the background
         screen.blit(background_image, (0, 0))
-        # draw the header
-        # pygame.draw.rect(screen, pink, headerRect)
-        # screen.blit(headerText, headerRect)
+        
         # if hovering on a button, change its color
         if mousex >= quitButtonx and mousex <= quitButtonx + quitButtonwidth and \
                 mousey >= quitButtony and mousey <= quitButtony + quitButtonheight:
@@ -261,26 +269,39 @@ while True:
             pointsText = pointsfont.render(f"Points: {playerPoints}", True, black, pink)
             #draw the player point
             screen.blit(pointsText, (10, 10))
+        elif gameState == GameState.SHOP:
+            # Placeholder for shop: display text and back button
+            shopText = headerfont.render("Shop Coming Soon!", True, black, pink)
+            shopRect = shopText.get_rect()
+            shopRect.center = (350, 300)
+            screen.blit(shopText, shopRect)
+            
+            backButtonText = buttonfont.render(" Back ", True, black, pink)
+            backButtonRect = backButtonText.get_rect()
+            backButtonRect.center = (350, 500)
+            pygame.draw.rect(screen, white, backButtonRect)
+            screen.blit(backButtonText, backButtonRect)
         else:
-            # if hovering on a button, change its color
             if mousex >= quitButtonx and mousex <= quitButtonx + quitButtonwidth and \
                     mousey >= quitButtony and mousey <= quitButtony + quitButtonheight:
                 quitButtonText = buttonfont.render(" Quit ", True, red, pink)
             else:
                 quitButtonText = buttonfont.render(" Quit ", True, black, pink)
-
-            # draw the quit button text
-            screen.blit(quitButtonText, quitButtonRect)
-
+            
+            if mousex >= shopButtonx and mousex <= shopButtonx + shopButtonwidth and \
+                    mousey >= shopButtony and mousey <= shopButtony + shopButtonheight:
+                shopButtonText = buttonfont.render(" Shop ", True, red, pink)
+            else:
+                shopButtonText = buttonfont.render(" Shop ", True, black, pink)
+            
             if mousex >= startButtonx and mousex <= startButtonx + startButtonwidth and \
                     mousey >= startButtony and mousey <= startButtony + startButtonheight:
                 startButtonText = buttonfont.render(" Start ", True, red, pink)
             else:
                 startButtonText = buttonfont.render(" Start ", True, black, pink)
-
-            # draw the start button text
-            screen.blit(quitButtonText, quitButtonRect)
-            screen.blit(startButtonText, startButtonRect)
-
+        
+        screen.blit(quitButtonText, quitButtonRect)
+        screen.blit(shopButtonText, shopButtonRect)
+        screen.blit(startButtonText, startButtonRect)
         #update the display
         pygame.display.update()
