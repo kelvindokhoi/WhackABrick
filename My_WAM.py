@@ -7,6 +7,8 @@ from pygame.locals import *
 import random
 from enum import Enum
 
+#Image Prompt: Make me a 1:1 ratio image that is a background for the shop of a game that has these characters. The game is called Whack A' Brick. 
+
 class GameState(Enum):
     MAIN_MENU = 0
     GAME_START = 1
@@ -41,6 +43,7 @@ mole_paths = [".\\PNG\\Double\\Special\\extra_character_a.png",".\\PNG\\Double\\
 background_path = "Whack_A_Brick_background.png"
 braxton_image_path = "braxton-remove.png"
 quit_button_image_path = "Quit_Button.png"
+shop_background_image_path = "Shop.png"
 
 # Sounds we want to use
 pygame.mixer.init()
@@ -61,6 +64,7 @@ braxton_y = 408//4
 braxton_image = pygame.transform.scale(pygame.image.load(resource_path(braxton_image_path)).convert_alpha(),(braxton_x,braxton_y))
 screen.blit(background_image, (0, 0))
 screen.blit(braxton_image, (0, 700-408//4))
+shop_background_image = pygame.transform.scale(pygame.image.load(resource_path(shop_background_image_path)).convert(),(700,700))
 
 # Mole class
 class Mole(Sprite):
@@ -143,6 +147,16 @@ shopButtonRect.topleft = (shopButtonx,shopButtony)
 pygame.draw.rect(screen,white,shopButtonRect)
 screen.blit(shopButtonText, shopButtonRect)
 
+# # create text and info for our shop back button
+shopBackButtonText = buttonfont.render(" Back ", True, black, pink)
+shopBackButtonRect = shopBackButtonText.get_rect()
+shopBackButtonx = 300  # New position
+shopBackButtony = 600
+shopBackButtonwidth = shopBackButtonRect.width
+shopBackButtonheight = shopBackButtonRect.height
+shopBackButtonRect.topleft = (shopBackButtonx,shopBackButtony)
+
+
 # create text and info for our start button
 startButtonText = buttonfont.render(" Start ", True, black, pink)
 startButtonRect = startButtonText.get_rect()
@@ -223,6 +237,11 @@ while True:
                 mousey >= shopButtony and mousey <= shopButtony + shopButtonheight:
                 gameState = GameState.SHOP
             
+            # Add shop button click
+            elif gameState==GameState.SHOP and mousex >= shopBackButtonx and mousex <= shopBackButtonx + shopBackButtonwidth and \
+                mousey >= shopBackButtony and mousey <= shopBackButtony + shopBackButtonheight:
+                gameState = GameState.MAIN_MENU
+            
             #play amongus sound when braxton is clicked
             braxton_pos_x1 = 0
             braxton_pos_x2 = 0 + braxton_x
@@ -244,17 +263,15 @@ while True:
                         playerPoints += 1
 
 
-        # paint the background
-        screen.blit(background_image, (0, 0))
+        
         
         # if hovering on a button, change its color
-        if mousex >= quitButtonx and mousex <= quitButtonx + quitButtonwidth and \
-                mousey >= quitButtony and mousey <= quitButtony + quitButtonheight:
-            quitButtonText = buttonfont.render(" Quit ", True, red, pink)
-        else:
-            quitButtonText = buttonfont.render(" Quit ", True, black, pink)
-        # draw the button text
-        screen.blit(quitButtonText, quitButtonRect)
+        # if mousex >= quitButtonx and mousex <= quitButtonx + quitButtonwidth and \
+        #         mousey >= quitButtony and mousey <= quitButtony + quitButtonheight:
+        #     quitButtonText = buttonfont.render(" Quit ", True, red, pink)
+        # else:
+        #     quitButtonText = buttonfont.render(" Quit ", True, black, pink)
+        
         # draw the moles
         for a_mole in allmoles:
             if a_mole.status in MolePossibleConfig or a_mole.status == MoleState.DEAD:
@@ -263,25 +280,53 @@ while True:
         screen.blit(braxton_image, (0, 700-408//4))
 
         if gameState==GameState.GAME_START:
+            # paint the background
+            screen.blit(background_image, (0, 0))
+
             cursor_rect.center = pygame.mouse.get_pos()
             #draw the cursor
             screen.blit(cursor_image, cursor_rect)
             pointsText = pointsfont.render(f"Points: {playerPoints}", True, black, pink)
             #draw the player point
             screen.blit(pointsText, (10, 10))
+
+            if mousex >= quitButtonx and mousex <= quitButtonx + quitButtonwidth and \
+                    mousey >= quitButtony and mousey <= quitButtony + quitButtonheight:
+                quitButtonText = buttonfont.render(" Quit ", True, red, pink)
+            else:
+                quitButtonText = buttonfont.render(" Quit ", True, black, pink)       
+        
+            screen.blit(quitButtonText, quitButtonRect)
+
         elif gameState == GameState.SHOP:
+            # paint the background
+            screen.blit(shop_background_image, (0, 0))
             # Placeholder for shop: display text and back button
             shopText = headerfont.render("Shop Coming Soon!", True, black, pink)
             shopRect = shopText.get_rect()
             shopRect.center = (350, 300)
             screen.blit(shopText, shopRect)
             
-            backButtonText = buttonfont.render(" Back ", True, black, pink)
-            backButtonRect = backButtonText.get_rect()
-            backButtonRect.center = (350, 500)
-            pygame.draw.rect(screen, white, backButtonRect)
-            screen.blit(backButtonText, backButtonRect)
-        else:
+
+            if mousex >= quitButtonx and mousex <= quitButtonx + quitButtonwidth and \
+                    mousey >= quitButtony and mousey <= quitButtony + quitButtonheight:
+                quitButtonText = buttonfont.render(" Quit ", True, red, pink)
+            else:
+                quitButtonText = buttonfont.render(" Quit ", True, black, pink)
+            
+            if mousex >= shopBackButtonx and mousex <= shopBackButtonx + shopBackButtonwidth and \
+                    mousey >= shopBackButtony and mousey <= shopBackButtony + shopBackButtonheight:
+                shopBackButtonText = buttonfont.render(" Back ", True, red, pink)
+            else:
+                shopBackButtonText = buttonfont.render(" Back ", True, black, pink)
+        
+            screen.blit(quitButtonText, quitButtonRect)
+            pygame.draw.rect(screen,white,shopBackButtonRect)
+            screen.blit(shopBackButtonText, shopBackButtonRect)
+
+        elif gameState==GameState.MAIN_MENU:
+            # paint the background
+            screen.blit(background_image, (0, 0))
             if mousex >= quitButtonx and mousex <= quitButtonx + quitButtonwidth and \
                     mousey >= quitButtony and mousey <= quitButtony + quitButtonheight:
                 quitButtonText = buttonfont.render(" Quit ", True, red, pink)
@@ -300,8 +345,8 @@ while True:
             else:
                 startButtonText = buttonfont.render(" Start ", True, black, pink)
         
-        screen.blit(quitButtonText, quitButtonRect)
-        screen.blit(shopButtonText, shopButtonRect)
-        screen.blit(startButtonText, startButtonRect)
+            screen.blit(quitButtonText, quitButtonRect)
+            screen.blit(shopButtonText, shopButtonRect)
+            screen.blit(startButtonText, startButtonRect)
         #update the display
         pygame.display.update()
