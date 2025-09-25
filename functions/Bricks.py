@@ -2,6 +2,8 @@ from enum import Enum
 from functions.Resource_Reader import image_loader
 from functions.FilePaths import * #type:ignore
 from functions.GameState import GameState
+from functions.Music import Music
+from functions.CalculateScore import caclculate_score
 from pygame.sprite import * #type:ignore
 from pygame.locals import * #type:ignore
 import random
@@ -69,14 +71,16 @@ class BrickObject:
             x = 274
             y += 154
         self.allbricks = Group(self.bricks)
+
     def brick_draw(self,screen):
         self.allbricks.draw(screen)
+        
     def random_brick(self,gameState):
         if gameState==GameState.GAME_START:
             for i in range(5):
                 for j in range(5):
                     # if brick was absent, randomly makeit alive
-                    aliveodds = 20
+                    aliveodds = 50
                     absentodds = 3
                     if self.bricks[i][j].status not in brickPossibleConfig and self.bricks[i][j].fading == False:
                         r = random.randint(1,aliveodds)
@@ -90,6 +94,12 @@ class BrickObject:
                         if r == 1:
                             self.bricks[i][j].status = brickState.ABSENT
                             self.bricks[i][j].image = self.bricks[i][j].absent_image
+        else:
+            for i in range(5):
+                for j in range(5):
+                    self.bricks[i][j].status = brickState.ABSENT
+                    self.bricks[i][j].image = self.bricks[i][j].absent_image
+
     def update_brick(self):
         for i in range(5):
             for j in range(5):
@@ -104,3 +114,17 @@ class BrickObject:
         for brick in self.allbricks:
             if brick.status in brickPossibleConfig or brick.status == brickState.DEAD:
                 screen.blit(brick.image, brick.rect)
+    
+    def play_brick_hit_sound(self,music):
+        music.play_brick_hit_sound()
+    
+    def if_brick_collide(self,cursor_Rect,playerPoints,buffs,music):
+        for brick in self.allbricks:
+            if brick.status in brickPossibleConfig and brick.rect.colliderect(cursor_Rect):
+                brick.status = brickState.DEAD
+                brick.fading = True
+                brick.fade_alpha = 255
+                brick.original_image = brick.image.copy()
+                self.play_brick_hit_sound(music)
+                playerPoints = caclculate_score(playerPoints, buffs)
+        return playerPoints

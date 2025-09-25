@@ -16,6 +16,8 @@ from functions.FilePaths import * #type:ignore
 from functions.Colors import * #type:ignore
 from functions.Bricks import brickState,brickPossibleConfig,Brick,BrickObject
 from functions.GameState import GameState
+from functions.Music import Music
+from functions.CalculateScore import caclculate_score
 
 connect_to_database = False
 MyDB = Database(connect_to_database)
@@ -23,11 +25,7 @@ MyDB = Database(connect_to_database)
 gameState = GameState.MAIN_MENU
 
 # Sounds we want to use
-pygame.mixer.init()
-braxton_sound = pygame.mixer.Sound(resource_path(amongus_sound_path))
-moe_sound = pygame.mixer.Sound(resource_path(cheese_sound_path))
-background_music = pygame.mixer.music.load(resource_path(background_music_path))
-pygame.mixer.music.play(-1)
+music = Music()
 
 #Initialize display
 if pygame.get_init()==False:
@@ -140,20 +138,6 @@ cursor_Rect.center = pygame.mouse.get_pos()
 #buffs
 buffs = []
 
-def caclculate_score(current_score,buffs):
-    value = 1
-    for buff in buffs:
-        if BUFF.X2SCOREMULTIPLIER == buff:value*=2
-        elif BUFF.X3SCOREMULTIPLIER == buff:value*=3
-        elif BUFF.X4SCOREMULTIPLIER == buff:value*=4
-        elif BUFF.X5SCOREMULTIPLIER == buff:value*=5
-        elif BUFF.X6SCOREMULTIPLIER == buff:value*=6
-        elif BUFF.X7SCOREMULTIPLIER == buff:value*=7
-        elif BUFF.X8SCOREMULTIPLIER == buff:value*=8
-        elif BUFF.X9SCOREMULTIPLIER == buff:value*=9
-        elif BUFF.X10SCOREMULTIPLIER == buff:value*=10
-    return current_score + value
-
 
 while True:
     cursor_Rect = cursor_image.get_rect()
@@ -194,19 +178,8 @@ while True:
                 case GameState.GAME_START:
                     if startBackButtonRect.colliderect(cursor_Rect):
                         gameState = GameState.MAIN_MENU
-
-                    
                     #when moe is clicked, make it fade, play sound, increase pointsfor i in range(5):
-                    for i in range(5):
-                        for j in range(5):
-                            brick = brickObject.bricks[i][j]
-                            if brick.status in brickPossibleConfig and brick.rect.colliderect(cursor_Rect):
-                                brick.status = brickState.DEAD
-                                brick.fading = True
-                                brick.fade_alpha = 255
-                                brick.original_image = brick.image.copy()
-                                moe_sound.play()
-                                playerPoints = caclculate_score(playerPoints, buffs)
+                    playerPoints = brickObject.if_brick_collide(cursor_Rect,playerPoints,buffs,music)
 
     match gameState:
         case GameState.GAME_START:
@@ -233,14 +206,7 @@ while True:
             pygame.draw.rect(screen, blue, settingsButtonRect, 5)
 
             if BUFF.AUTOCLICK in buffs:
-                for brick in brickObject.allbricks:
-                    if brick.status in brickPossibleConfig and brick.rect.colliderect(cursor_Rect):
-                        brick.status = brickState.DEAD
-                        brick.fading = True
-                        brick.fade_alpha = 255
-                        brick.original_image = brick.image.copy()
-                        moe_sound.play()
-                        playerPoints += 1
+                playerPoints = brickObject.if_brick_collide(cursor_Rect,playerPoints,buffs,music)
 
             brickObject.blit_brick(screen)
             #draw braxton
@@ -305,6 +271,6 @@ while True:
         # pygame.draw.rect(screen, (255,0,0), quitButtonRect, 2)   # red outline
         # pygame.draw.rect(screen, (0,0,255), shopButtonRect, 2)   # blue outline
     brickObject.debug_mode_brick(screen)
-        #update the display
+    #update the display
     screen.blit(cursor_image, cursor_Rect)
     pygame.display.update()
