@@ -1,4 +1,6 @@
 from peewee import * #type: ignore
+import tkinter as tk
+from tkinter import messagebox
 
 class Database:
     def __init__(self,IsDatabaseUsed) -> None:
@@ -28,7 +30,15 @@ class Database:
                 ScoreVal = IntegerField()
 
             #4. Connect to the database
-            self.db.connect()
+            try:
+                self.db.connect()
+            except Exception:
+                root = tk.Tk()
+                root.withdraw()  # Hide the main root window
+                root.wm_attributes('-topmost', True)
+                messagebox.showwarning("Warning","No database connection. Quitting now.")
+                root.destroy()
+                quit()
 
             #5. Read data from the database
             #Select high scores

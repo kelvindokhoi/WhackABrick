@@ -16,6 +16,7 @@ shop_back_button_hover_image_path = "BackButtonHover.png"
 shop_background_image_path = "ShopBackground.jpeg"
 background_music_path = "Break_the_Wall.mp3"
 settings_image_path = "settings.png"
+settings_hover_image_path = "settings_hover.png"
 amongus_sound_path = 'among-us-roundstart.mp3'
 cheese_sound_path = 'cheese.mp3'
 cursor_image_path = "cursor.png"

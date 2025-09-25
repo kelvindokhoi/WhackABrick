@@ -8,15 +8,6 @@ from pygame.sprite import * #type:ignore
 from pygame.locals import * #type:ignore
 import random
 
-
-if pygame.get_init()==False:
-    pygame.init()
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN,pygame.NOFRAME)
-    infoObject = pygame.display.Info()
-    desktop_width = infoObject.current_w
-    desktop_height = infoObject.current_h
-    pygame.display.set_caption("Whack A' Brick!")
-
 class brickState(Enum):
     ABSENT = 0
     CHARACTER_A = 1
@@ -25,7 +16,6 @@ class brickState(Enum):
     CHARACTER_D = 4
     CHARACTER_E = 5
     DEAD = 6
-
 
 class Brick(Sprite):
     def __init__(self, x, y):
@@ -101,10 +91,11 @@ class BrickObject:
             for j in range(5):
                 self.bricks[i][j].update()
     
-    def debug_mode_brick(self,screen):
-        for i in range(5):
-            for j in range(5):
-                pygame.draw.rect(screen, (0,0,255), self.bricks[i][j].rect, 2)
+    def debug_mode_brick(self,screen,debug_mode):
+        if debug_mode:
+            for i in range(5):
+                for j in range(5):
+                    pygame.draw.rect(screen, (0,0,255), self.bricks[i][j].rect, 2)
     
     def blit_brick(self,screen):
         for brick in self.allbricks:
