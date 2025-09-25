@@ -1,1 +1,1 @@
-pyinstaller --onefile --windowed --add-data "resource;resource" --icon=whack.ico My_WAM.py
+pyinstaller --onefile --windowed --add-data="resource;resource" --add-data="functions;functions" --icon=whack.ico My_WAM.py

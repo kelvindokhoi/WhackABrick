@@ -5,7 +5,7 @@ a = Analysis(
     ['My_WAM.py'],
     pathex=[],
     binaries=[],
-    datas=[('resource/*', 'resource')],
+    datas=[('resource', 'resource'), ('functions', 'functions')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
