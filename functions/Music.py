@@ -14,3 +14,6 @@ class Music:
     
     def play_brick_hit_sound(self):
         self.brick_hit_sound.play()
+    
+    def play_braxton_sound(self):
+        self.braxton_sound.play()

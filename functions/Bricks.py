@@ -26,23 +26,16 @@ class brickState(Enum):
     CHARACTER_E = 5
     DEAD = 6
 
-brickPossibleConfig = [brickState.CHARACTER_A,brickState.CHARACTER_B,brickState.CHARACTER_C,brickState.CHARACTER_D,brickState.CHARACTER_E]
-brickabsent = image_loader(brick_absent_image_path,(90,90))
-brick_alive = [(state,image_loader(brick_img,(90,90))) for state,brick_img in zip(brickPossibleConfig,brick_paths)]
 
 class Brick(Sprite):
     def __init__(self, x, y):
         Sprite.__init__(self)
-        orginal_x = 128
-        orginal_y = 128
-        ratio = 90/orginal_x
-        after_x = int(orginal_x*ratio)
-        after_y = int(orginal_y*ratio)
-        self.image = image_loader(brick_absent_image_path,(after_x,after_y))
-        self.rect = Rect(x+70,y-10,after_x,after_y)
+        self.image = image_loader(brick_absent_image_path,(90,90))
+        self.rect = Rect(x+70,y-10,90,90)
         self.status = brickState.ABSENT
-        self.absent_image = brickabsent
-        self.alive_image = brickabsent
+        self.brickabsent = image_loader(brick_absent_image_path,(90,90))
+        self.absent_image = self.brickabsent
+        self.alive_image = self.brickabsent
         self.fading = False
         self.fade_alpha = 255
         self.original_image = None
@@ -72,25 +65,28 @@ class BrickObject:
             y += 154
         self.allbricks = Group(self.bricks)
 
+        self.brickPossibleConfig = [brickState.CHARACTER_A,brickState.CHARACTER_B,brickState.CHARACTER_C,brickState.CHARACTER_D,brickState.CHARACTER_E]
+        self.brick_alive = [(state,image_loader(brick_img,(90,90))) for state,brick_img in zip(self.brickPossibleConfig,brick_paths)]
+        self.aliveodds = 5
+        self.absentodds = 10
+
     def brick_draw(self,screen):
         self.allbricks.draw(screen)
-        
+
     def random_brick(self,gameState):
         if gameState==GameState.GAME_START:
             for i in range(5):
                 for j in range(5):
                     # if brick was absent, randomly makeit alive
-                    aliveodds = 50
-                    absentodds = 3
-                    if self.bricks[i][j].status not in brickPossibleConfig and self.bricks[i][j].fading == False:
-                        r = random.randint(1,aliveodds)
+                    if self.bricks[i][j].status not in self.brickPossibleConfig and self.bricks[i][j].fading == False:
+                        r = random.randint(1,self.aliveodds)
                         if r == 1:
-                            selected = random.choice(brick_alive)
+                            selected = random.choice(self.brick_alive)
                             self.bricks[i][j].status = selected[0]
                             self.bricks[i][j].image = selected[1]
                     # if alive, randomly make it absent
                     elif self.bricks[i][j].status not in [brickState.ABSENT,brickState.DEAD]:
-                        r = random.randint(1, absentodds)
+                        r = random.randint(1, self.absentodds)
                         if r == 1:
                             self.bricks[i][j].status = brickState.ABSENT
                             self.bricks[i][j].image = self.bricks[i][j].absent_image
@@ -112,7 +108,7 @@ class BrickObject:
     
     def blit_brick(self,screen):
         for brick in self.allbricks:
-            if brick.status in brickPossibleConfig or brick.status == brickState.DEAD:
+            if brick.status in self.brickPossibleConfig or brick.status == brickState.DEAD:
                 screen.blit(brick.image, brick.rect)
     
     def play_brick_hit_sound(self,music):
@@ -120,7 +116,7 @@ class BrickObject:
     
     def if_brick_collide(self,cursor_Rect,playerPoints,buffs,music):
         for brick in self.allbricks:
-            if brick.status in brickPossibleConfig and brick.rect.colliderect(cursor_Rect):
+            if brick.status in self.brickPossibleConfig and brick.rect.colliderect(cursor_Rect):
                 brick.status = brickState.DEAD
                 brick.fading = True
                 brick.fade_alpha = 255

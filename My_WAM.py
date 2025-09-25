@@ -14,10 +14,11 @@ from functions.Database import Database
 from functions.Resource_Reader import resource_path,image_loader
 from functions.FilePaths import * #type:ignore
 from functions.Colors import * #type:ignore
-from functions.Bricks import brickState,brickPossibleConfig,Brick,BrickObject
+from functions.Bricks import brickState,Brick,BrickObject
 from functions.GameState import GameState
 from functions.Music import Music
 from functions.CalculateScore import caclculate_score
+from functions.Braxton import BraxtonObject
 
 connect_to_database = False
 MyDB = Database(connect_to_database)
@@ -46,14 +47,7 @@ background_image = image_loader(background_169_path,(desktop_width,desktop_heigh
 shop_background_image = image_loader(shop_background_image_path,(desktop_width,desktop_height),False)
 settings_image = pygame.image.load(resource_path(settings_image_path)).convert_alpha()
 
-#Braxton
-braxton_x = 612//4
-braxton_y = 408//4
-braxton_image = pygame.transform.scale(pygame.image.load(resource_path(braxton_image_path)).convert_alpha(),(braxton_x,braxton_y))
-braxton_Rect = braxton_image.get_rect()
-braxton_Rect.topleft = (0, desktop_height-braxton_y)
-screen.blit(background_image, (0, 0))
-screen.blit(braxton_image, braxton_Rect)
+braxtonObject = BraxtonObject(desktop_height)
 
 # for timing
 framerate = 1000  # you can modify to adjust speed of animation, 1 second = 1000 milliseconds
@@ -171,6 +165,7 @@ while True:
                     # When shop button is clicked, change to SHOP
                     elif shopButtonRect.colliderect(cursor_Rect):
                         gameState = GameState.SHOP
+                    braxtonObject.if_collide_braxton(cursor_Rect,music)
                 # When shop's back button is clicked, changes to MAIN_MENU
                 case GameState.SHOP:
                     if shopBackButtonRect.colliderect(cursor_Rect):
@@ -180,6 +175,7 @@ while True:
                         gameState = GameState.MAIN_MENU
                     #when moe is clicked, make it fade, play sound, increase pointsfor i in range(5):
                     playerPoints = brickObject.if_brick_collide(cursor_Rect,playerPoints,buffs,music)
+                    braxtonObject.if_collide_braxton(cursor_Rect,music)
 
     match gameState:
         case GameState.GAME_START:
@@ -209,8 +205,7 @@ while True:
                 playerPoints = brickObject.if_brick_collide(cursor_Rect,playerPoints,buffs,music)
 
             brickObject.blit_brick(screen)
-            #draw braxton
-            screen.blit(braxton_image, braxton_Rect)
+            braxtonObject.blit_braxton(screen)
 
         case GameState.SHOP:
             # paint the background
@@ -241,10 +236,6 @@ while True:
             # paint the background
             screen.blit(background_image, (0, 0))
 
-            #when braxton is clicked, play sound
-            if braxton_Rect.colliderect(cursor_Rect):
-                braxton_sound.play()
-
             if quitButtonRect.colliderect(cursor_Rect):
                 quitButtonCurrentImage = quitButtonImageHover
             else:
@@ -260,7 +251,7 @@ while True:
             else:
                 startButtonCurrentImage = startButtonImage
 
-            screen.blit(braxton_image, braxton_Rect)
+            braxtonObject.blit_braxton(screen)
             screen.blit(quitButtonCurrentImage, quitButtonRect)
             screen.blit(shopButtonCurrentImage, shopButtonRect)
             screen.blit(startButtonCurrentImage, startButtonRect)
