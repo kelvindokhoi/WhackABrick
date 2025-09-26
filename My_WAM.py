@@ -7,6 +7,7 @@ from pygame.locals import * #type:ignore
 import random
 from enum import Enum
 from peewee import * #type:ignore
+import tkinter as tk
 from tkinter import messagebox
 
 #functions
@@ -24,10 +25,11 @@ from functions.Button import Button
 from functions.All_Buttons import * #type:ignore
 from functions.Fonts import GameFonts
 from functions.DisplaySettings import initialize_display
+from functions.Leaderboard import LeaderboardObject
 
 # Game modes (developer options)
 debug_mode = False
-connect_to_database = False
+connect_to_database = True
 
 # Displays
 screen,desktop_width,desktop_height = initialize_display()
@@ -47,6 +49,8 @@ shopBackButtonObject = ShopBackButtonObject()
 startButtonObject = StartButtonObject()
 startBackButtonObject = StartBackButtonObject()
 settingsButtonObject = SettingsButtonObject(desktop_width)
+leaderboardButtonObject = LeaderboardButtonObject()
+leaderboardObject = LeaderboardObject(desktop_width,desktop_height)
 
 # Timing
 framerate = 1000  # you can modify to adjust speed of animation, 1 second = 1000 milliseconds
@@ -56,6 +60,7 @@ pygame.time.set_timer(TIMEREVENT, framerate)
 # Parameters
 initialGold = 0
 buffs = [BUFF.AUTOCLICK,BUFF.X2SCOREMULTIPLIER,BUFF.X3SCOREMULTIPLIER]
+COUNTDOWN = 6
 
 # Cursor settings
 pygame.mouse.set_visible(False)
@@ -72,7 +77,10 @@ while True:
             pygame.quit()
             sys.exit()
 
-        if event.type == TIMEREVENT:brickObject.random_brick(gameState)
+        if event.type == TIMEREVENT:
+            brickObject.random_brick(gameState)
+            if gameState == GameState.GAME_START:
+                countdown -= 1
         brickObject.update_brick()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -85,19 +93,32 @@ while True:
                     if startButtonObject.rect.colliderect(cursor_Rect):
                         gameState = GameState.GAME_START
                         playerPoints = 0
+                        countdown = COUNTDOWN
                     # When shop button is clicked, change to SHOP
                     elif shopButtonObject.rect.colliderect(cursor_Rect):
                         gameState = GameState.SHOP
+                    elif leaderboardButtonObject.rect.colliderect(cursor_Rect):
+                        scores,scoreVals = MyDB.read_top_3()
+                        gameState = GameState.LEADERBOARD
                     braxtonObject.if_collide_braxton(cursor_Rect,music)
                 # When shop's back button is clicked, changes to MAIN_MENU
+
                 case GameState.SHOP:
                     if shopBackButtonObject.rect.colliderect(cursor_Rect):
                         gameState = GameState.MAIN_MENU
+                    elif leaderboardButtonObject.rect.colliderect(cursor_Rect):
+                        scores,scoreVals = MyDB.read_top_3()
+                        gameState = GameState.LEADERBOARD
+
                 case GameState.GAME_START:
                     if startBackButtonObject.rect.colliderect(cursor_Rect):
                         gameState = GameState.MAIN_MENU
                     playerPoints = brickObject.if_brick_collide(cursor_Rect,playerPoints,buffs,music)
                     braxtonObject.if_collide_braxton(cursor_Rect,music)
+
+                case GameState.LEADERBOARD:
+                    if shopBackButtonObject.rect.colliderect(cursor_Rect):
+                        gameState = GameState.MAIN_MENU
 
     match gameState:
         case GameState.GAME_START:
@@ -121,6 +142,19 @@ while True:
             brickObject.blit_brick(screen)
             braxtonObject.blit_braxton(screen)
 
+            gameFont.blit_timer(screen,countdown)
+
+            if countdown==0:
+                scores,scoreVals = MyDB.read_top_3()
+                if playerPoints>min(scoreVals):
+                    gameState = GameState.SCORE_INPUT
+                    leaderboardObject.ask_name(MyDB,playerPoints)
+                    playerPoints = 0
+                    gameState = GameState.MAIN_MENU
+                    # win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOSIZE)
+                else:
+                    gameState = GameState.MAIN_MENU
+
         case GameState.SHOP:
             # paint the background
             screen.blit(shop_background_image, (0, 0))
@@ -130,10 +164,12 @@ while True:
             quitButtonObject.if_hover(cursor_Rect)
             shopBackButtonObject.if_hover(cursor_Rect)
             settingsButtonObject.if_hover(cursor_Rect)
+            leaderboardButtonObject.if_hover(cursor_Rect)
         
             quitButtonObject.blit_button(screen)
             shopBackButtonObject.blit_button(screen)
             settingsButtonObject.blit_button(screen)
+            leaderboardButtonObject.blit_button(screen)
 
         case GameState.MAIN_MENU:
             # paint the background
@@ -143,16 +179,27 @@ while True:
             shopButtonObject.if_hover(cursor_Rect)
             startButtonObject.if_hover(cursor_Rect)
             settingsButtonObject.if_hover(cursor_Rect)
+            leaderboardButtonObject.if_hover(cursor_Rect)
 
             braxtonObject.blit_braxton(screen)
             quitButtonObject.blit_button(screen)
             shopButtonObject.blit_button(screen)
             startButtonObject.blit_button(screen)
             settingsButtonObject.blit_button(screen)
+            leaderboardButtonObject.blit_button(screen)
+
+        case GameState.LEADERBOARD:
+            screen.blit(background_image,(0,0))
+            
+            leaderboardObject.blit_leaderboard(screen,scores,gameFont)
+
+            shopBackButtonObject.if_hover(cursor_Rect)
+
+            shopBackButtonObject.blit_button(screen)
 
         case default:
             pass
-    # pygame.draw.rect(screen, (0,255,0), startButtonRect, 2)  # green outline
+
     quitButtonObject.debug_mode(screen,debug_mode)
     shopButtonObject.debug_mode(screen,debug_mode)
     brickObject.debug_mode_brick(screen,debug_mode)

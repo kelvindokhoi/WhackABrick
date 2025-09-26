@@ -20,3 +20,5 @@ settings_hover_image_path = "settings_hover.png"
 amongus_sound_path = 'among-us-roundstart.mp3'
 cheese_sound_path = 'cheese.mp3'
 cursor_image_path = "cursor.png"
+leaderboard_image_path = "Leaderboard.png"
+leaderboard_button_image_path = "leaderboard_button.png"

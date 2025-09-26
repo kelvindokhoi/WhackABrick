@@ -56,5 +56,26 @@ class Database:
                 i+=1
 
             self.db.close()
-            # for i in range(3):
-            #     print(scores[i],scoreVals[i])
+
+    def insert_data(self,name,score):
+        self.db.connect()
+        self.db.execute_sql(f"INSERT INTO `scores` (`ScoreID`, `ScoreName`, `ScoreVal`) VALUES (NULL, '{name}', '{score}'); ")
+        self.db.close()
+    
+    def read_top_3(self):
+        self.db.connect()
+        scores = ["Bob 0" for _ in range(3)]
+        scoreVals = [0 for _ in range(3)]
+
+        db_cursor = self.db.execute_sql("select scores.scorename, scores.scoreval from scores order by scores.scoreval desc limit 3")
+
+        i=0
+        for row in db_cursor.fetchall():
+            #print(row[0],row[1])
+            scores[i] = row[0] + "  " + str(row[1])  
+            scoreVals[i] = row[1]
+            print(scores[i])
+            i+=1
+
+        self.db.close()
+        return scores,scoreVals

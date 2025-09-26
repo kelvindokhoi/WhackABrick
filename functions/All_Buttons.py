@@ -5,6 +5,7 @@ from functions.FilePaths import shop_back_button_image_path,shop_back_button_hov
 from functions.FilePaths import quit_button_image_path,quit_button_hover_image_path
 from functions.FilePaths import start_button_image_path,start_button_hover_image_path
 from functions.FilePaths import settings_image_path,settings_hover_image_path
+from functions.FilePaths import leaderboard_button_image_path
 
 class ShopButtonObject(Button):
     def __init__(self) -> None:
@@ -70,3 +71,12 @@ class SettingsButtonObject(Button):
             self.current_image = self.hover_image
         else:
             self.current_image = self.image
+
+class LeaderboardButtonObject(Button):
+    def __init__(self) -> None:
+        super().__init__(leaderboard_button_image_path,
+                         leaderboard_button_image_path,
+                         alpha=True,
+                         dimension_normal=(300+10,130+5),
+                         dimension_hover=(300,130),
+                         topleft=(0,0))
