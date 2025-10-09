@@ -22,3 +22,35 @@ cheese_sound_path = 'cheese.mp3'
 cursor_image_path = "cursor.png"
 leaderboard_image_path = "Leaderboard.png"
 leaderboard_button_image_path = "leaderboard_button.png"
+settings_background_image_path = "Game_Settings_UI.png"
+
+#score multipliers
+x2_image_path = 'x2.png'
+x3_image_path = 'x3.png'
+x4_image_path = 'x4.png'
+x5_image_path = 'x5.png'
+x6_image_path = 'x6.png'
+x7_image_path = 'x7.png'
+x8_image_path = 'x8.png'
+x9_image_path = 'x9.png'
+x10_image_path = 'x10.png'
+max_image_path = 'max.png'
+
+#buy
+buy_image_path = "buy.png"
+buy_hover_image_path = "buy_hover.png"
+
+enhanced_cursor_image_path = "enhanced_cursor.png"
+gold_buff_image_path = "Gold_buff.png"
+brick17_image_path = "ultimate_brick.png"
+
+ding_sound = "ding.mp3"
+ttbling_sound = "ttbling.mp3"
+get_coin_sound = "get-coin.mp3"
+pop_sound = "pop.mp3"
+
+game_start_theme_path = "game_start_theme.mp3"
+leaderboard_theme_path = "leaderboard_theme.mp3"
+settings_theme = "settings_theme.mp3"
+shop_theme = "shop_theme.mp3"
+main_theme = "main_theme.mp3"

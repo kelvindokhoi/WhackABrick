@@ -1,0 +1,8 @@
+self.x3_image = image_loader(x3_image_path,self.multiplier_image_dimension)
+self.x4_image = image_loader(x4_image_path,self.multiplier_image_dimension)
+self.x5_image = image_loader(x5_image_path,self.multiplier_image_dimension)
+self.x6_image = image_loader(x6_image_path,self.multiplier_image_dimension)
+self.x7_image = image_loader(x7_image_path,self.multiplier_image_dimension)
+self.x8_image = image_loader(x8_image_path,self.multiplier_image_dimension)
+self.x9_image = image_loader(x9_image_path,self.multiplier_image_dimension)
+self.x10_image = image_loader(x10_image_path,self.multiplier_image_dimension)

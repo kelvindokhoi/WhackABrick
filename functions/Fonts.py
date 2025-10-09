@@ -22,6 +22,7 @@ class GameFonts:
         screen.blit(pointsText, (90, 10))
     
     def blit_shop_text(self,screen):
+        return
         shopText = self.headerfont.render("Shop Coming Soon!", True, black, pink)
         shopRect = shopText.get_rect()
         shopRect.center = (950, 600)

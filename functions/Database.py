@@ -32,7 +32,8 @@ class Database:
             #4. Connect to the database
             try:
                 self.db.connect()
-            except Exception:
+            except Exception as e:
+                print(e)
                 root = tk.Tk()
                 root.withdraw()  # Hide the main root window
                 root.wm_attributes('-topmost', True)
@@ -49,17 +50,25 @@ class Database:
 
             i=0
             for row in db_cursor.fetchall():
-                #print(row[0],row[1])
                 scores[i] = row[0] + "  " + str(row[1])  
                 scoreVals[i] = row[1]
-                print(scores[i])
                 i+=1
 
             self.db.close()
 
     def insert_data(self,name,score):
         self.db.connect()
-        self.db.execute_sql(f"INSERT INTO `scores` (`ScoreID`, `ScoreName`, `ScoreVal`) VALUES (NULL, '{name}', '{score}'); ")
+
+        # Prevent SQL injection by allowing only alphanumeric names (and spaces)
+        if not isinstance(name, str) or not name.replace(" ", "").isalnum():
+            raise ValueError("Name contains invalid characters.")
+        if not isinstance(score, int):
+            raise ValueError("Score must be an integer.")
+
+        self.db.execute_sql(
+            "INSERT INTO `scores` (`ScoreID`, `ScoreName`, `ScoreVal`) VALUES (NULL, %s, %s);",
+            (name, score)
+        )
         self.db.close()
     
     def read_top_3(self):
@@ -71,10 +80,9 @@ class Database:
 
         i=0
         for row in db_cursor.fetchall():
-            #print(row[0],row[1])
             scores[i] = row[0] + "  " + str(row[1])  
             scoreVals[i] = row[1]
-            print(scores[i])
+            # print(scores[i])
             i+=1
 
         self.db.close()

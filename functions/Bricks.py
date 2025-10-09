@@ -7,6 +7,7 @@ from functions.CalculateScore import caclculate_score
 from pygame.sprite import * #type:ignore
 from pygame.locals import * #type:ignore
 import random
+import pygame
 
 class brickState(Enum):
     ABSENT = 0
@@ -42,6 +43,29 @@ class Brick(Sprite):
                 faded.set_alpha(self.fade_alpha)
                 self.image = faded
 
+class Explosion(Sprite):
+    def __init__(self, pos):
+        Sprite.__init__(self)
+        self.pos = pos
+        self.max_radius = 300
+        self.radius = 0
+        self.alpha = 255
+        self.color = (255, 165, 0)  # Orange for explosion
+        self.done = False
+        self.center = (self.max_radius, self.max_radius)
+        self.image_size = (self.max_radius * 2, self.max_radius * 2)
+        self.image = pygame.Surface(self.image_size, pygame.SRCALPHA)
+        self.rect = self.image.get_rect(center=pos)
+    
+    def update(self):
+        self.radius += 8
+        self.alpha -= 15
+        if self.radius > self.max_radius or self.alpha < 0:
+            self.done = True
+        else:
+            self.image.fill((0, 0, 0, 0))
+            pygame.draw.circle(self.image, (*self.color, self.alpha), self.center, self.radius)
+
 class BrickObject:
     def __init__(self):
         self.bricks = [[None for _ in range(5)] for _ in range(5)]
@@ -54,10 +78,11 @@ class BrickObject:
             x = 274
             y += 154
         self.allbricks = Group(self.bricks)
+        self.explosions = []
 
         self.brickPossibleConfig = [brickState.CHARACTER_A,brickState.CHARACTER_B,brickState.CHARACTER_C,brickState.CHARACTER_D,brickState.CHARACTER_E]
         self.brick_alive = [(state,image_loader(brick_img,(90,90))) for state,brick_img in zip(self.brickPossibleConfig,brick_paths)]
-        self.aliveodds = 5
+        self.aliveodds = 10
         self.absentodds = 10
 
     def brick_draw(self,screen):
@@ -90,6 +115,10 @@ class BrickObject:
         for i in range(5):
             for j in range(5):
                 self.bricks[i][j].update()
+        for exp in self.explosions[:]:
+            exp.update()
+            if exp.done:
+                self.explosions.remove(exp)
     
     def debug_mode_brick(self,screen,debug_mode):
         if debug_mode:
@@ -101,6 +130,8 @@ class BrickObject:
         for brick in self.allbricks:
             if brick.status in self.brickPossibleConfig or brick.status == brickState.DEAD:
                 screen.blit(brick.image, brick.rect)
+        for exp in self.explosions:
+            screen.blit(exp.image, exp.rect)
     
     def play_brick_hit_sound(self,music):
         music.play_brick_hit_sound()
@@ -114,4 +145,6 @@ class BrickObject:
                 brick.original_image = brick.image.copy()
                 self.play_brick_hit_sound(music)
                 playerPoints = caclculate_score(playerPoints, buffs)
+                exp_pos = brick.rect.center
+                self.explosions.append(Explosion(exp_pos))
         return playerPoints

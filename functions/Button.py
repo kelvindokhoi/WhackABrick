@@ -18,9 +18,11 @@ class Button:
         if self.rect.colliderect(cursor_Rect):
             self.current_image = self.hover_image
             self.rect.topleft = self.hover_topleft
+            return True
         else:
             self.current_image = self.image
             self.rect.topleft = self.normal_topleft
+            return False
     
     def debug_mode(self,screen,debug_mode):
         if debug_mode:
