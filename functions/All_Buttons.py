@@ -37,8 +37,9 @@ class QuitButtonObject(Button):
     
     def if_clicked(self,cursor_Rect):
         if self.rect.colliderect(cursor_Rect):
-            pygame.quit()
-            sys.exit()
+            pass
+            # pygame.quit()
+            # sys.exit()
 
 class StartButtonObject(Button):
     def __init__(self) -> None:
@@ -81,15 +82,6 @@ class LeaderboardButtonObject(Button):
                          dimension_normal=(300+10,130+5),
                          dimension_hover=(300,130),
                          topleft=(0,0))
-        
-# class MultiplierBuyButtonObject(Button):
-#     def __init__(self) -> None:
-#         super().__init__(leaderboard_button_image_path,
-#                          leaderboard_button_image_path,
-#                          alpha=True,
-#                          dimension_normal=(300+10,130+5),
-#                          dimension_hover=(300,130),
-#                          topleft=(0,0))
 
 class BuyButtonObject(Button):
     def __init__(self,dimension_normal,dimension_hover,topleft):
