@@ -4,6 +4,8 @@ class BUFF(Enum):
     AUTOCLICK = 0
     GOLDBUFF = 1
     BRICK17 = 2
+    BOSS_KILLER = 17  # New: Reduces boss hits
+    CHAIN_MASTER = 18  # New: Enhances chaining
     X2SCOREMULTIPLIER = 3
     X3SCOREMULTIPLIER = 4
     X4SCOREMULTIPLIER = 5
@@ -18,4 +20,3 @@ class BUFF(Enum):
     LUCKY = 14
     TIMESLOWDOWN = 15
     PERIODICTHORTUHNDER = 16
-    

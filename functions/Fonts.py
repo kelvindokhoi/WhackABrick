@@ -21,12 +21,9 @@ class GameFonts:
         pointsText = self.pointsfont.render(f"Points: {playerPoints}", True, darkblue)
         screen.blit(pointsText, (90, 10))
     
-    def blit_shop_text(self,screen):
-        return
-        shopText = self.headerfont.render("Shop Coming Soon!", True, black, pink)
-        shopRect = shopText.get_rect()
-        shopRect.center = (950, 600)
-        screen.blit(shopText, shopRect)
+    def blit_level(self, screen, current_level, x_position):
+        level_text = self.pointsfont.render(f"Level: {current_level}", True, darkblue)
+        screen.blit(level_text, (x_position, 10))
     
     def blit_timer(self,screen,current_time):
         timer_text = self.timerfont.render(f"{current_time}",True,black)
@@ -37,5 +34,37 @@ class GameFonts:
         color = {1:red,2:orange,3:yellow}[position]
         leaderboard_message = self.leaderboard_text.render(text,True,color)
         screen.blit(leaderboard_message,coordinate)
-        
 
+    def blit_level_progress(self, screen, current_level, playerPoints, level_threshold, desktop_width):
+        # Calculate progress
+        points_in_current_level = playerPoints - ((current_level - 1) * level_threshold)
+        points_needed = level_threshold
+        progress = min(points_in_current_level / points_needed, 1.0)
+        
+        # Progress bar dimensions and position
+        bar_width = 400
+        bar_height = 60  # Changed from 40 to 60
+        bar_x = (desktop_width - bar_width) // 2
+        bar_y = 20
+        
+        # Draw background bar
+        background_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
+        pygame.draw.rect(screen, white, background_rect, border_radius=10)
+        pygame.draw.rect(screen, darkblue, background_rect, 3, border_radius=10)
+        
+        # Draw filled portion
+        filled_width = int(bar_width * progress)
+        if filled_width > 0:
+            filled_rect = pygame.Rect(bar_x, bar_y, filled_width, bar_height)
+            pygame.draw.rect(screen, lightblue, filled_rect, border_radius=10)
+        
+        # Draw numeric progress text
+        progress_font = pygame.font.SysFont('Corbel', 28)
+        progress_font.set_bold(True)  # Make text bold
+        progress_text = progress_font.render(
+            f"{points_in_current_level}/{points_needed} to Level {current_level + 1}", 
+            True, 
+            black
+        )
+        text_rect = progress_text.get_rect(center=(desktop_width // 2, bar_y + bar_height + 25))
+        screen.blit(progress_text, text_rect)

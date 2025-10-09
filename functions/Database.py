@@ -6,10 +6,6 @@ class Database:
     def __init__(self,IsDatabaseUsed) -> None:
         self.IsDatabaseUsed = IsDatabaseUsed
         if self.IsDatabaseUsed == True:
-
-            #DATABASE TESTING
-            #1. Define the database connection
-            # Replace with your actual MySQL credentials
             self.db = MySQLDatabase(
                 'whackabrick',
                 host='localhost',
@@ -18,72 +14,77 @@ class Database:
                 password='root'
             )
 
-            #2. Define a base model for your database
             class BaseModel(Model):
                 class Meta:
                     database = self.db
 
-            #3. Define your model(s) that map to your database tables
             class Scores(BaseModel):
-                #ScoreID = AutoField() # Peewee automatically handles primary keys
                 ScoreName = CharField()
                 ScoreVal = IntegerField()
+                MaxLevel = IntegerField(default=1)  # New field
 
-            #4. Connect to the database
             try:
                 self.db.connect()
+                # Check if table exists
+                cursor = self.db.execute_sql("""
+                    SELECT TABLE_NAME 
+                    FROM INFORMATION_SCHEMA.TABLES 
+                    WHERE TABLE_NAME = 'scores'
+                """)
+                if cursor.fetchone() is None:
+                    # Create table if not exists
+                    self.db.create_tables([Scores])
+                else:
+                    # Check if column exists
+                    cursor = self.db.execute_sql("""
+                        SELECT COLUMN_NAME 
+                        FROM INFORMATION_SCHEMA.COLUMNS 
+                        WHERE TABLE_NAME = 'scores' 
+                        AND COLUMN_NAME = 'MaxLevel'
+                    """)
+                    if cursor.fetchone() is None:
+                        # Add the column if it doesn't exist
+                        self.db.execute_sql("ALTER TABLE scores ADD COLUMN MaxLevel INT DEFAULT 1")
             except Exception as e:
                 print(e)
                 root = tk.Tk()
-                root.withdraw()  # Hide the main root window
+                root.withdraw()
                 root.wm_attributes('-topmost', True)
-                messagebox.showwarning("Warning","No database connection. Quitting now.")
+                messagebox.showwarning("Warning","No database connection or setup failed. Quitting now.")
                 root.destroy()
                 quit()
 
-            #5. Read data from the database
-            #Select high scores
-            scores = [None for _ in range(3)]
-            scoreVals = [None for _ in range(3)]
-
-            db_cursor = self.db.execute_sql("select scores.scorename, scores.scoreval from scores order by scores.scoreval desc limit 3")
-
-            i=0
-            for row in db_cursor.fetchall():
-                scores[i] = row[0] + "  " + str(row[1])  
-                scoreVals[i] = row[1]
-                i+=1
-
             self.db.close()
 
-    def insert_data(self,name,score):
-        self.db.connect()
-
-        # Prevent SQL injection by allowing only alphanumeric names (and spaces)
+    def insert_data(self,name,score, max_level):  # Modified
+        if self.db.is_closed():
+            self.db.connect()
         if not isinstance(name, str) or not name.replace(" ", "").isalnum():
             raise ValueError("Name contains invalid characters.")
         if not isinstance(score, int):
             raise ValueError("Score must be an integer.")
 
         self.db.execute_sql(
-            "INSERT INTO `scores` (`ScoreID`, `ScoreName`, `ScoreVal`) VALUES (NULL, %s, %s);",
-            (name, score)
+            "INSERT INTO `scores` (`ScoreID`, `ScoreName`, `ScoreVal`, `MaxLevel`) VALUES (NULL, %s, %s, %s);",
+            (name, score, max_level)
         )
         self.db.close()
     
-    def read_top_3(self):
-        self.db.connect()
-        scores = ["Bob 0" for _ in range(3)]
+    def read_top_3(self):  # Modified: Return max_levels too
+        if self.db.is_closed():
+            self.db.connect()
+        scores = ["Bob 0 L1" for _ in range(3)]  # Format: Name Score Level
         scoreVals = [0 for _ in range(3)]
+        max_levels = [1 for _ in range(3)]
 
-        db_cursor = self.db.execute_sql("select scores.scorename, scores.scoreval from scores order by scores.scoreval desc limit 3")
+        db_cursor = self.db.execute_sql("SELECT scorename, scoreval, MaxLevel FROM scores ORDER BY scoreval DESC LIMIT 3")
 
         i=0
         for row in db_cursor.fetchall():
-            scores[i] = row[0] + "  " + str(row[1])  
+            scores[i] = f"{row[0]}  {row[1]} L{row[2]}"  
             scoreVals[i] = row[1]
-            # print(scores[i])
+            max_levels[i] = row[2]
             i+=1
 
         self.db.close()
-        return scores,scoreVals
+        return scores,scoreVals, max_levels

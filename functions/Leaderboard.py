@@ -16,28 +16,29 @@ class LeaderboardObject:
             message = scores[i]
             gameFont.blit_leaderboard_text(screen,message,i+1)
     
-    def ask_name(self,MyDB,score,earnedGold):
+    def ask_name(self,MyDB,score,earnedGold, max_level):
         # Create a custom Tkinter dialog for name input
         root = tk.Tk()
         root.withdraw()
-        dialog = CustomDialog(root, score, earnedGold,title="Leaderboard Entry")
+        dialog = CustomDialog(root, score, earnedGold, max_level,title="Leaderboard Entry")
         user_response = dialog.result
         root.destroy()
         if user_response is not None and user_response != '':
             if len(user_response) <= 50:
-                MyDB.insert_data(user_response, score)
+                MyDB.insert_data(user_response, score, max_level)
         
     def show_player_score(self,playerPoints,MyDB,earnedGold):
         root = tk.Tk()
         root.withdraw()
-        _,top3scores = MyDB.read_top_3()
+        _,top3scores,_ = MyDB.read_top_3()
         dialog = CustomDialogNL(root, playerPoints,earnedGold,min(top3scores)-playerPoints, title="Leaderboard Entry")
         root.destroy()
 
 class CustomDialog(simpledialog.Dialog):
-    def __init__(self, parent, score, earnedGold,title=None):
+    def __init__(self, parent, score, earnedGold, max_level,title=None):
         self.score = score
         self.earnedGold = earnedGold
+        self.max_level = max_level
         super().__init__(parent, title=title)
 
     def body(self, master):

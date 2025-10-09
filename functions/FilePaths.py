@@ -54,3 +54,9 @@ leaderboard_theme_path = "leaderboard_theme.mp3"
 settings_theme = "settings_theme.mp3"
 shop_theme = "shop_theme.mp3"
 main_theme = "main_theme.mp3"
+
+boss_killer_image_path = "boss_killer.png"
+chain_master_image_path = "chain_master.png"
+
+boss_brick_image_path = "boss_brick.png"  # Add appropriate filename
+gold_icon_path = "gold_icon.png"  # Also referenced in Bricks.py line 33

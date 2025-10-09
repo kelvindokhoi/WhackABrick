@@ -66,10 +66,15 @@ pygame.time.set_timer(TIMEREVENT, framerate)
 # Parameters
 initialGold = 0
 buffs = []
-COUNTDOWN = 61
-playerGold = 0
+COUNTDOWN = 31
+playerGold = 100000
 playerPoints = 0
 countdown = COUNTDOWN
+current_level = 1  # New: Track current level
+level_threshold = 500  # Points needed per level
+max_level = 1  # Persistent max level (loaded from DB or default)
+autoclick_cooldown = 500  # milliseconds (0.5 seconds = 2 clicks per second)
+last_autoclick_time = 0
 
 # Cursor settings
 pygame.mouse.set_visible(False)
@@ -87,7 +92,9 @@ while True:
     if BUFF.AUTOCLICK in buffs:
         current_cursor_image = autoclick_cursor_image
     else:
-        cursor_Rect = current_cursor_image.get_rect()
+        current_cursor_image = normal_cursor_image
+
+    cursor_Rect = current_cursor_image.get_rect()  # Move outside the else
     cursor_Rect.center = pygame.mouse.get_pos()
 
     events = pygame.event.get()
@@ -97,7 +104,7 @@ while True:
             sys.exit()
 
         if singular_event.type == TIMEREVENT and not settings_visible and gameState==GameState.GAME_START:
-            brickObject.random_brick(gameState)
+            brickObject.random_brick(gameState, current_level)  # Pass level for difficulty
             if gameState == GameState.GAME_START:
                 countdown -= 1
 
@@ -128,13 +135,14 @@ while True:
                     if startButtonObject.rect.colliderect(cursor_Rect):
                         gameState = GameState.GAME_START
                         playerPoints = 0
+                        current_level = 1  # Reset level on new game
                         countdown = COUNTDOWN
                     # When shop button is clicked, change to SHOP
                     elif shopButtonObject.rect.colliderect(cursor_Rect):
                         gameState = GameState.SHOP
                         current_background_image = shop_background_image
                     elif leaderboardButtonObject.rect.colliderect(cursor_Rect):
-                        scores,scoreVals = MyDB.read_top_3()
+                        scores, scoreVals, max_levels = MyDB.read_top_3()
                         gameState = GameState.LEADERBOARD
                     braxtonObject.if_collide_braxton(cursor_Rect,music)
                 # When shop's back button is clicked, changes to MAIN_MENU
@@ -149,10 +157,10 @@ while True:
                         shopObject.feedback_timer = 0
 
                     elif leaderboardButtonObject.rect.colliderect(cursor_Rect):
-                        scores,scoreVals = MyDB.read_top_3()
+                        scores, scoreVals, max_levels = MyDB.read_top_3()
                         gameState = GameState.LEADERBOARD
                     else:
-                        playerGold, buffs = shopObject.if_clicked(events, buffs, playerGold, music)
+                        playerGold, buffs = shopObject.if_clicked(events, buffs, playerGold, music,max_level)
 
                 case GameState.GAME_START:
                     if startBackButtonObject.rect.colliderect(cursor_Rect):
@@ -162,7 +170,7 @@ while True:
                         if BUFF.BRICK17 in buffs:
                             killed_any = False
                             for brick in brickObject.allbricks:
-                                if brick.status in brickObject.brickPossibleConfig:
+                                if brick.status in brickObject.brickPossibleConfig or brick.status == brickState.BOSS:
                                     killed_any = True
                                     brick.status = brickState.DEAD
                                     brick.fading = True
@@ -171,10 +179,18 @@ while True:
                                     playerPoints = caclculate_score(playerPoints, buffs)
                                     exp_pos = brick.rect.center
                                     brickObject.explosions.append(Explosion(exp_pos))
+                                    # Chain bonus with random offset
+                                    if random.random() < (0.1 + (current_level - 1) * 0.05):
+                                        offset_x = random.randint(-30, 30)
+                                        offset_y = random.randint(-30, 30)
+                                        if BUFF.CHAIN_MASTER in buffs:
+                                            brickObject.spawn_bonus_gold((exp_pos[0] + offset_x, exp_pos[1] + offset_y))
+                                            brickObject.spawn_bonus_gold((exp_pos[0] - offset_x, exp_pos[1] - offset_y))
+                                        else:
+                                            brickObject.spawn_bonus_gold((exp_pos[0] + offset_x, exp_pos[1] + offset_y))
                             if killed_any:
                                 music.play_brick_hit_sound()
-                        else:
-                            playerPoints = brickObject.if_brick_collide(cursor_Rect,playerPoints,buffs,music)
+
                     braxtonObject.if_collide_braxton(cursor_Rect,music)
 
                 case GameState.LEADERBOARD:
@@ -187,6 +203,14 @@ while True:
 
     music.update()
 
+    # Check for level up (wave completion)
+    if gameState == GameState.GAME_START and playerPoints >= current_level * level_threshold:
+        current_level += 1
+        max_level = max(max_level, current_level)
+        # Brief pause or message (simple text overlay for now)
+        level_text = gameFont.pointsfont.render(f"Level {current_level} Unlocked!", True, (255, 215, 0))
+        screen.blit(level_text, (desktop_width // 2 - 100, desktop_height // 2))
+
     brickObject.update_brick()
 
     screen.blit(current_background_image,(0,0))
@@ -195,6 +219,8 @@ while True:
             
             #player point
             gameFont.blit_player_point(playerPoints,screen)
+            gameFont.blit_level(screen, current_level, desktop_width - 400)
+            gameFont.blit_level_progress(screen, current_level, playerPoints, level_threshold, desktop_width)
 
             quitButtonObject.if_hover(cursor_Rect)
             startBackButtonObject.if_hover(cursor_Rect)
@@ -205,7 +231,11 @@ while True:
             settingsButtonObject.blit_button(screen)
 
             if BUFF.AUTOCLICK in buffs:
-                playerPoints = brickObject.if_brick_collide(cursor_Rect,playerPoints,buffs,music)
+                current_time = pygame.time.get_ticks()
+                if current_time - last_autoclick_time >= autoclick_cooldown:
+                    playerPoints, playerGold = brickObject.if_brick_collide(cursor_Rect, playerPoints, buffs, music, current_level, playerGold)
+                    last_autoclick_time = current_time
+
 
             brickObject.blit_brick(screen)
             braxtonObject.blit_braxton(screen)
@@ -215,10 +245,10 @@ while True:
             if countdown==0:
                 earnedGold = int(math.sqrt(playerPoints)) + 2*buffs.count(BUFF.GOLDBUFF)
                 playerGold += earnedGold
-                scores,scoreVals = MyDB.read_top_3()
+                scores, scoreVals, max_levels = MyDB.read_top_3()
                 if playerPoints>min(scoreVals):
                     gameState = GameState.SCORE_INPUT
-                    leaderboardObject.ask_name(MyDB,playerPoints,earnedGold)
+                    leaderboardObject.ask_name(MyDB,playerPoints,earnedGold, max_level)  # Pass max_level
                     playerPoints = 0
                     gameState = GameState.MAIN_MENU
                 else:
@@ -226,8 +256,6 @@ while True:
                     gameState = GameState.MAIN_MENU
 
         case GameState.SHOP:
-            # Placeholder for shop: display text and back button
-            gameFont.blit_shop_text(screen)
 
             quitButtonObject.if_hover(cursor_Rect)
             shopBackButtonObject.if_hover(cursor_Rect)
@@ -239,10 +267,7 @@ while True:
             settingsButtonObject.blit_button(screen)
             leaderboardButtonObject.blit_button(screen)
 
-            shopObject.blit_shop_items(screen,buffs,playerGold,cursor_Rect)
-            # pygame.draw.rect(screen,(0,0,225),shopObject.mult_exp_rect,2) #debug
-            if cursor_Rect.colliderect(shopObject.mult_exp_rect):
-                screen.blit(shopObject.multiplier_explanation_text,shopObject.score_multiplier_explanation_position)
+            shopObject.blit_shop_items(screen,buffs,playerGold,cursor_Rect, max_level)  # Pass max_level for unlocks
 
         case GameState.MAIN_MENU:
 
