@@ -29,7 +29,9 @@ class Music:
             GameState.SETTINGS: settings_theme,
         }
         pygame.mixer.music.set_volume(self.music_volume)
-        self.switch_theme(GameState.MAIN_MENU)
+        # Play main theme immediately
+        pygame.mixer.music.load(resource_path(main_theme))
+        pygame.mixer.music.play(loops=-1)
     
     def update_sfx_volumes(self):
         for sound in [self.braxton_sound, self.cheese_sound, self.ttbling_sound, self.ding_sound, self.pop_sound, self.get_coin_sound]:
